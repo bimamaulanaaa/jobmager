@@ -5,10 +5,12 @@
   "description": "AI-powered, platform-agnostic autofill for job application forms (Chrome MV3).",
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit && vite build && vite build --config vite.content.config.ts",
+    "build": "tsc --noEmit && vitest run && vite build && vite build --config vite.content.config.ts",
     "build:fast": "vite build && vite build --config vite.content.config.ts",
     "dev": "npm run build:fast -- --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "pdfjs-dist": "^6.3.289",
@@ -22,6 +24,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.4",
     "typescript": "^5.9.3",
-    "vite": "^7.1.11"
+    "vite": "^7.1.11",
+    "vitest": "^5.0.1"
   }
 }

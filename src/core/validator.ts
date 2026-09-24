@@ -38,6 +38,9 @@ function asDate(s: string): string | null {
   }
   m = t.match(/^(\d{4})[-/.](\d{1,2})$/);
   if (m) return `${m[1]}-${m[2].padStart(2, '0')}`;
+  // Month/year, the shape most application forms use for employment dates.
+  m = t.match(/^(\d{1,2})[-/.](\d{4})$/);
+  if (m && Number(m[1]) >= 1 && Number(m[1]) <= 12) return `${m[2]}-${m[1].padStart(2, '0')}`;
   const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
   m = t.match(/^([a-z]{3,9})\.?\s+(\d{4})$/i);
   if (m) {
