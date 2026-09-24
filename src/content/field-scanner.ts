@@ -164,7 +164,10 @@ function kindOf(el: HTMLElement): FieldKind | null {
     if (el.type === 'checkbox') return 'checkbox';
     return 'text';
   }
-  if (el.isContentEditable) return 'contenteditable';
+  // The attribute is checked alongside the property: isContentEditable is not
+  // populated in every context (detached trees, non-rendering engines).
+  const editable = el.getAttribute('contenteditable');
+  if (el.isContentEditable || editable === 'true' || editable === '') return 'contenteditable';
   return null;
 }
 

@@ -3,5 +3,11 @@ import { resolve } from 'node:path';
 
 export default defineConfig({
   resolve: { alias: { '@': resolve(__dirname, 'src') } },
-  test: { environment: 'node', include: ['src/**/*.test.ts'] },
+  test: {
+    include: ['src/**/*.test.ts'],
+    environmentMatchGlobs: [
+      ['src/content/**', 'jsdom'],
+      ['**', 'node'],
+    ],
+  },
 });
