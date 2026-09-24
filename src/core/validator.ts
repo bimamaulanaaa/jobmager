@@ -115,6 +115,21 @@ function traceableList(value: string, corpus: string[], normCorpus: string[]): b
   return parts.every((p) => traceable(p, corpus, normCorpus));
 }
 
+/**
+ * A lone checkbox that asks the user to agree, consent or certify. Ticking one
+ * is an attestation the user makes, not data Jobmager holds, so these are
+ * always left for the user — however confidently the model proposes them.
+ */
+const CONSENT = /\b(agree|consent|certif|accept|acknowledg|attest|declar|authoris|authoriz|opt[- ]?in|subscrib|terms|privacy polic|permission)\w*/i;
+
+function isConsentCheckbox(field: FieldDescriptor): boolean {
+  if (field.kind !== 'checkbox' || field.multiple) return false;
+  const context = [field.label, field.ariaLabel, field.nearbyText, field.name, field.domId]
+    .filter(Boolean)
+    .join(' ');
+  return CONSENT.test(context);
+}
+
 /** Resolves a proposed value against a field's option list. */
 function resolveOption(value: string, options: { value: string; label: string }[]): string | null {
   const v = norm(value);
@@ -159,6 +174,13 @@ export function validateMatches(
     }
 
     const value = proposed.trim();
+
+    if (isConsentCheckbox(field)) {
+      const reason = 'agreements are left for you to tick';
+      rejections.push({ fieldId: field.id, value, reason });
+      matches.push({ fieldId: field.id, value: null, rejected: reason });
+      continue;
+    }
 
     // Fields with a fixed option set: the value must be one of the options.
     if (field.options && field.options.length) {

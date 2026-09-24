@@ -31,6 +31,8 @@ HARD RULES (violating any of these is a failure, even if the answer looks helpfu
 7. Leave a field null when it asks for something the user did not store, even if
    you could derive it from general knowledge (e.g. do not derive a country from
    a city, or a full name from an email address).
+8. Never tick a single checkbox that agrees to terms, consents, certifies,
+   attests or opts in. Those are the user's to tick. Output null.
 
 OUTPUT: a JSON object whose keys are the given field ids and whose values are
 strings or null. Include every field id exactly once. No commentary.`;

@@ -167,6 +167,38 @@ describe('validateMatches — rejects anything invented', () => {
   });
 });
 
+describe('validateMatches — agreements stay with the user', () => {
+  const consent = (label: string): FieldDescriptor => ({
+    id: 'f1', kind: 'checkbox', label,
+    options: [{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }],
+  });
+
+  it.each([
+    'I agree to the terms and conditions',
+    'I certify the information above is accurate',
+    'I consent to a background check',
+    'I acknowledge the privacy policy',
+    'Opt in to job alerts',
+  ])('refuses to tick: %s', (label) => {
+    const { matches, rejections } = run({ f1: 'yes' }, [consent(label)]);
+    expect(matches[0].value).toBeNull();
+    expect(rejections[0].reason).toMatch(/left for you/);
+  });
+
+  it('still answers an ordinary yes/no checkbox', () => {
+    const { matches } = run({ f1: 'yes' }, [consent('Are you willing to relocate?')]);
+    expect(matches[0].value).toBe('yes');
+  });
+
+  it('still fills a multi-select group whose options mention agreements', () => {
+    const { matches } = run({ f1: 'Go' }, [{
+      id: 'f1', kind: 'checkbox', multiple: true, label: 'Languages',
+      options: [{ value: 'go', label: 'Go' }],
+    }]);
+    expect(matches[0].value).toBe('go');
+  });
+});
+
 describe('validateMatches — option fields', () => {
   const select: FieldDescriptor = {
     id: 'f1',

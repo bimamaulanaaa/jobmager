@@ -82,6 +82,11 @@ value may be a *part* of something you stored, never something you stored *padde
 words*. That asymmetry is what stops `Ada Lovelace` from becoming
 `Ada Lovelace, Senior Engineer at Google`.
 
+**Agreements are never ticked for you.** A lone checkbox that asks you to agree, consent,
+certify, attest or opt in is always left empty, whatever the model proposes. Ticking one is
+an attestation you make, not data Jobmager holds. Ordinary yes/no checkboxes ("willing to
+relocate?") are still answered normally.
+
 Two consequences worth knowing about, both deliberate:
 
 - A fragment must be a **whole delimited part** of a stored value. `LinkedIn` will not be
@@ -165,7 +170,7 @@ The content script is injected into all frames and each one scans and fills inde
 
 ```bash
 npm run dev         # rebuild on change — then press Reload in chrome://extensions
-npm run test        # 46 tests
+npm run test        # 53 tests
 npm run typecheck
 ```
 
@@ -190,5 +195,6 @@ its API host to `host_permissions` in `public/manifest.json`. Nothing else needs
   comboboxes) are recognised when they expose a real input or ARIA roles, but a purely
   `div`-based listbox may need a manual pick.
 - **File uploads** are never touched — resumes must be attached by hand.
+- **Consent and agreement checkboxes** are left empty by design; tick them yourself.
 - **Scanned PDFs** have no text layer; resume import needs a text-based PDF.
 - Fields rendered after autofill runs are not filled; press Autofill again.
