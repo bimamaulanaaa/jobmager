@@ -58,6 +58,20 @@ function asDate(s: string): string | null {
 const BOOLEANISH = new Set(['yes', 'no', 'true', 'false', 'y', 'n']);
 
 /**
+ * The delimited parts of a stored value — the city inside a one-line address,
+ * one skill inside a joined list. Splitting a stored value into its parts is
+ * allowed; slicing arbitrary characters out of one is not, because the slice
+ * is rarely a fact in its own right ("LinkedIn" out of a LinkedIn URL is a
+ * plausible answer to "how did you hear about us", and a fabricated one).
+ */
+function chunksOf(value: string): string[] {
+  return value
+    .split(/[,;|\n\t]| - /)
+    .map((part) => part.trim())
+    .filter((part) => part.length >= 2);
+}
+
+/**
  * Can `value` be traced back to something the user actually supplied?
  *
  * Only containment in the *user's direction* is allowed — the value may be a
@@ -84,9 +98,9 @@ function traceable(value: string, corpus: string[], normCorpus: string[]): boole
     if (normCorpus.some((c) => re.test(c))) return true;
   }
 
-  // Fragment of a stored value (city out of a one-line address, etc.).
-  // Short strings must match exactly — "1" must not match every number.
-  if (v.length >= 4 && normCorpus.some((c) => c.includes(v))) return true;
+  // A whole delimited part of a stored value: the city out of a one-line
+  // address, one skill out of a joined list.
+  if (corpus.some((c) => chunksOf(c).some((chunk) => norm(chunk) === v))) return true;
 
   return false;
 }

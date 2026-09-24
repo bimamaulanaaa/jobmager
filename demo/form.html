@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Acme Robotics — Senior Backend Engineer</title>
+<style>
+  body { font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         max-width: 720px; margin: 0 auto; padding: 40px 24px 120px; color: #16161d; background: #fbfbfd; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: #63636f; margin-bottom: 28px; }
+  fieldset { border: 1px solid #e3e3ea; border-radius: 10px; padding: 18px; margin: 0 0 18px; background: #fff; }
+  legend { font-weight: 600; padding: 0 6px; }
+  .f { margin-bottom: 14px; }
+  label { display: block; font-size: 13px; font-weight: 500; color: #43434f; margin-bottom: 4px; }
+  input[type=text], input[type=email], input[type=tel], input[type=url], input[type=date],
+  select, textarea { width: 100%; padding: 8px 10px; border: 1px solid #cfcfda; border-radius: 8px; font: inherit; }
+  textarea { min-height: 90px; }
+  .choice label { display: inline-flex; gap: 6px; align-items: center; font-weight: 400; margin-right: 16px; }
+  .q { font-size: 13px; font-weight: 500; color: #43434f; margin-bottom: 4px; }
+  .editable { border: 1px solid #cfcfda; border-radius: 8px; padding: 8px 10px; min-height: 70px; background: #fff; }
+  button { font: inherit; padding: 10px 18px; border-radius: 8px; border: 0; background: #4f46e5; color: #fff; cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>Senior Backend Engineer</h1>
+<p class="sub">Acme Robotics · Remote — a deliberately messy form for testing Jobmager.</p>
+
+<form id="application">
+  <fieldset>
+    <legend>About you</legend>
+    <!-- label bound with for= -->
+    <div class="f"><label for="fn">First name</label><input type="text" id="fn" name="first_name"></div>
+    <div class="f"><label for="ln">Last name</label><input type="text" id="ln" name="last_name"></div>
+    <!-- wrapping label -->
+    <div class="f"><label>Email address <input type="email" name="email"></label></div>
+    <!-- aria-label only -->
+    <div class="f"><input type="tel" name="phone" aria-label="Phone number" placeholder="+1 555 0100"></div>
+    <!-- no label at all: only nearby text -->
+    <div class="f"><div class="q">Where are you based?</div><input type="text" name="loc_city"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Links</legend>
+    <div class="f"><label for="li">LinkedIn profile</label><input type="url" id="li" name="linkedin"></div>
+    <div class="f"><label for="gh">GitHub</label><input type="url" id="gh" name="github"></div>
+    <div class="f"><label for="pf">Portfolio or personal site</label><input type="url" id="pf" name="portfolio"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Experience</legend>
+    <div class="f"><label for="cur">Current or most recent employer</label><input type="text" id="cur" name="employer"></div>
+    <div class="f"><label for="tit">Current job title</label><input type="text" id="tit" name="job_title"></div>
+    <div class="f"><label for="start">When did you start that role?</label><input type="date" id="start" name="role_start"></div>
+    <div class="f"><label for="sk">Key skills</label><textarea id="sk" name="skills"></textarea></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Eligibility</legend>
+    <div class="f">
+      <label for="country">Country of residence</label>
+      <select id="country" name="country">
+        <option value="">Please select…</option>
+        <option value="gb">United Kingdom</option>
+        <option value="us">United States</option>
+        <option value="de">Germany</option>
+        <option value="id">Indonesia</option>
+      </select>
+    </div>
+
+    <fieldset class="choice" style="margin-top:12px">
+      <legend style="font-size:13px">Do you now or in the future require visa sponsorship?</legend>
+      <label><input type="radio" name="sponsorship" value="yes"> Yes, I require sponsorship</label>
+      <label><input type="radio" name="sponsorship" value="no"> No, I do not require sponsorship</label>
+    </fieldset>
+
+    <div class="f" style="margin-top:14px">
+      <label for="notice">Notice period</label>
+      <input type="text" id="notice" name="notice_period" placeholder="e.g. 1 month">
+    </div>
+    <div class="f">
+      <label for="salary">Salary expectation</label>
+      <input type="text" id="salary" name="salary_expectation">
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Questions</legend>
+    <!-- These should stay EMPTY: nothing in a profile can answer them. -->
+    <div class="f"><label for="why">Why do you want to work at Acme Robotics?</label><textarea id="why" name="why_acme"></textarea></div>
+    <div class="f">
+      <div class="q">Describe a system you are proud of building.</div>
+      <div class="editable" contenteditable="true" role="textbox" aria-label="Describe a system you are proud of building"></div>
+    </div>
+    <div class="f"><label for="ref">How did you hear about this role?</label><input type="text" id="ref" name="referral"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Voluntary disclosure</legend>
+    <div class="f">
+      <label for="pronouns">Preferred pronouns</label>
+      <input type="text" id="pronouns" name="pronouns">
+    </div>
+    <div class="f choice">
+      <div class="q">Which of these apply to you?</div>
+      <label><input type="checkbox" name="lang" value="go"> Go</label>
+      <label><input type="checkbox" name="lang" value="py"> Python</label>
+      <label><input type="checkbox" name="lang" value="rs"> Rust</label>
+    </div>
+    <div class="f choice" style="margin-top:10px">
+      <label><input type="checkbox" name="tos"> I confirm the information above is accurate</label>
+    </div>
+  </fieldset>
+
+  <!-- None of these should ever be touched. -->
+  <input type="hidden" name="csrf_token" value="do-not-touch">
+  <input type="text" name="readonly_ref" value="REQ-4182" readonly>
+  <div style="display:none"><input type="text" name="honeypot"></div>
+  <div class="f"><label for="cv">Resume (PDF)</label><input type="file" id="cv" name="resume"></div>
+
+  <button type="button">Submit application</button>
+</form>
+</body>
+</html>

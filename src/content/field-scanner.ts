@@ -80,6 +80,19 @@ function findLabel(el: HTMLElement): string {
   return '';
 }
 
+/**
+ * Text from an element that is plausibly a label. An element that contains form
+ * controls is a layout wrapper, not a question, so its text is discarded — it
+ * would otherwise drag a whole section of the form into the field's context.
+ */
+function labelishText(el: Element | null): string {
+  if (!el) return '';
+  if (el.querySelector('input:not([type="hidden"]), select, textarea, [contenteditable="true"]')) {
+    return '';
+  }
+  return textOf(el);
+}
+
 /** Last resort: readable text sitting immediately before or above the field. */
 function findNearbyText(el: HTMLElement): string {
   const chunks: string[] = [];
@@ -87,7 +100,7 @@ function findNearbyText(el: HTMLElement): string {
   let node: Element | null = el.previousElementSibling;
   let hops = 0;
   while (node && hops < 3) {
-    const text = textOf(node);
+    const text = labelishText(node);
     if (text && text.length < 200) chunks.push(text);
     node = node.previousElementSibling;
     hops++;
@@ -96,6 +109,11 @@ function findNearbyText(el: HTMLElement): string {
   let parent: HTMLElement | null = el.parentElement;
   let depth = 0;
   while (parent && depth < 3 && chunks.join(' ').length < 120) {
+    // The question is frequently a sibling of the field's wrapper rather than
+    // of the field, e.g. <div class="q">Question</div><div><input></div>.
+    const prior = labelishText(parent.previousElementSibling);
+    if (prior && prior.length < 200) chunks.push(prior);
+
     const legend = parent.querySelector('legend, h1, h2, h3, h4, h5, h6');
     if (legend) {
       const text = textOf(legend);
@@ -136,8 +154,14 @@ function labelForChoice(input: HTMLInputElement): string {
 function groupQuestion(inputs: HTMLInputElement[]): string {
   const fieldset = inputs[0].closest('fieldset');
   if (fieldset) {
-    const legend = textOf(fieldset.querySelector('legend'));
-    if (legend) return legend;
+    // A legend is only this group's question when the fieldset wraps the group
+    // and nothing else. A fieldset holding other fields is a section heading,
+    // and using it would hand the matcher the wrong question.
+    const inside = fieldset.querySelectorAll('input:not([type="hidden"]), select, textarea').length;
+    if (inside <= inputs.length) {
+      const legend = textOf(fieldset.querySelector('legend'));
+      if (legend) return legend;
+    }
   }
   const group = inputs[0].closest('[role="radiogroup"], [role="group"]');
   if (group) {
@@ -152,8 +176,34 @@ function groupQuestion(inputs: HTMLInputElement[]): string {
       if (cleanText(text)) return cleanText(text);
     }
   }
-  // Fall back to whatever sits above the first option.
+  // Fall back to whatever sits above the group as a whole. Searching from a
+  // single option would pick up that option's own text ("Go"), which is an
+  // answer, not the question.
+  const container = commonAncestor(inputs);
+  if (container) {
+    const firstInputIndex = Array.from(container.children).findIndex((child) =>
+      inputs.some((input) => child.contains(input)),
+    );
+    // Text that appears before the first option inside the group's container.
+    for (let i = firstInputIndex - 1; i >= 0; i--) {
+      const text = labelishText(container.children[i]);
+      if (text && text.length < 200) return text;
+    }
+    const prior = labelishText(container.previousElementSibling);
+    if (prior && prior.length < 200) return prior;
+    return findNearbyText(container);
+  }
   return findNearbyText(inputs[0]);
+}
+
+/** Closest element containing every member of a radio/checkbox group. */
+function commonAncestor(elements: HTMLElement[]): HTMLElement | null {
+  let node: HTMLElement | null = elements[0]?.parentElement ?? null;
+  while (node) {
+    if (elements.every((el) => node!.contains(el))) return node;
+    node = node.parentElement;
+  }
+  return null;
 }
 
 function kindOf(el: HTMLElement): FieldKind | null {

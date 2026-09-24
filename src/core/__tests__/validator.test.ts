@@ -128,6 +128,34 @@ describe('validateMatches — rejects anything invented', () => {
     expect(matches[0].value).toBeNull();
   });
 
+  it('rejects a fragment that is not a delimited part of a stored value', () => {
+    // "LinkedIn" appears inside the stored LinkedIn URL, but as an answer to
+    // "how did you hear about this role" it is an invented claim.
+    const p = profileFixture();
+    p.links.linkedin = 'https://linkedin.com/in/adalovelace';
+    const { matches } = validateMatches(
+      { f1: 'LinkedIn' },
+      [text('f1', 'How did you hear about this role?')],
+      p,
+      [],
+    );
+    expect(matches[0].value).toBeNull();
+  });
+
+  it('accepts a city split out of a one-line address', () => {
+    const p = profileFixture();
+    p.address.line1 = '12 Analytical Way, London, EC1A 1BB';
+    p.address.city = '';
+    const { matches } = validateMatches({ f1: 'London' }, [text('f1', 'City')], p, []);
+    expect(matches[0].value).toBe('London');
+  });
+
+  it('rejects a date completed with a day the user never gave', () => {
+    // The profile stores 2019-05. Turning that into 2019-05-01 asserts a day.
+    const { matches } = run({ f1: '2019-05-01' }, [text('f1', 'Start date')]);
+    expect(matches[0].value).toBeNull();
+  });
+
   it('rejects non-string values', () => {
     const { matches } = run({ f1: 42 }, [text('f1', 'Years of experience')]);
     expect(matches[0].value).toBeNull();
