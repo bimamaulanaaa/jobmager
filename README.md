@@ -170,7 +170,7 @@ The content script is injected into all frames and each one scans and fills inde
 
 ```bash
 npm run dev         # rebuild on change — then press Reload in chrome://extensions
-npm run test        # 53 tests
+npm run test        # 62 tests
 npm run typecheck
 ```
 
@@ -181,6 +181,18 @@ that trace back are kept, invented ones are dropped) and the content script agai
 DOM (label resolution through five different mechanisms, radio/checkbox grouping, the
 refusal list, and that the filler routes through the native prototype setter — asserted by
 leaving a throwing instance-level setter in place, which is what a framework does).
+
+### Provider notes
+
+- **Anthropic** uses forced tool use for structured output, with thinking left on.
+  With thinking disabled, current models sometimes write a tool call into visible text
+  instead of emitting a `tool_use` block, which would return nothing. Matching is
+  mechanical, so `effort: low` is sent to the models that accept it (Haiku 4.5 rejects
+  the parameter and is skipped).
+- **Gemini** takes the key as an `x-goog-api-key` header rather than the `?key=` query
+  parameter shown in Google's examples, to keep the credential out of the URL. Only
+  `responseMimeType` is set; Jobmager's per-field schema uses `["string","null"]` unions,
+  which Gemini's `responseSchema` subset does not accept.
 
 ### Adding a provider
 

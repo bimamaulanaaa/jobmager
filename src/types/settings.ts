@@ -15,7 +15,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   providerId: 'anthropic',
-  model: 'claude-sonnet-5',
+  model: 'claude-opus-5',
   apiKey: '',
   activeProfileId: null,
   onboarded: false,

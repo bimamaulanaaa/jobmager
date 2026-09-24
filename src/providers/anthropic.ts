@@ -4,6 +4,15 @@ const API = 'https://api.anthropic.com/v1/messages';
 const VERSION = '2023-06-01';
 
 /** Required for direct fetch from an extension/browser context. */
+/**
+ * Field matching is mechanical, so it does not need deep reasoning — low effort
+ * cuts cost and latency on a call that runs on every form. Haiku 4.5 rejects
+ * the parameter, so it is only sent to models that accept it.
+ */
+function effortFor(model: string): Record<string, unknown> {
+  return /haiku/.test(model) ? {} : { output_config: { effort: 'low' } };
+}
+
 const BROWSER_HEADERS = {
   'anthropic-version': VERSION,
   'anthropic-dangerous-direct-browser-access': 'true',
@@ -16,9 +25,9 @@ export const anthropicProvider: AIProvider = {
   keyHint: 'sk-ant-...',
   keyUrl: 'https://console.anthropic.com/settings/keys',
   models: [
-    { id: 'claude-sonnet-5', label: 'Claude Sonnet 5 (recommended)' },
-    { id: 'claude-opus-5', label: 'Claude Opus 5 (most capable)' },
-    { id: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (fastest)' },
+    { id: 'claude-opus-5', label: 'Claude Opus 5 (recommended)' },
+    { id: 'claude-sonnet-5', label: 'Claude Sonnet 5' },
+    { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5 (fastest, cheapest)' },
   ],
 
   async validateKey(apiKey, model) {
@@ -26,8 +35,10 @@ export const anthropicProvider: AIProvider = {
       method: 'POST',
       headers: { ...BROWSER_HEADERS, 'x-api-key': apiKey },
       body: JSON.stringify({
+        // Thinking is on by default on current models, so a 4-token ceiling is
+        // too tight to come back cleanly. This only has to prove the key works.
         model,
-        max_tokens: 4,
+        max_tokens: 16,
         messages: [{ role: 'user', content: 'ping' }],
       }),
     });
@@ -42,6 +53,10 @@ export const anthropicProvider: AIProvider = {
       body: JSON.stringify({
         model: req.model,
         max_tokens: req.maxTokens ?? 4096,
+        ...effortFor(req.model),
+        // Thinking is deliberately left on. With it disabled, current models
+        // sometimes write a tool call into visible text instead of emitting a
+        // tool_use block — which would silently return nothing here.
         system: req.system,
         messages: [{ role: 'user', content: req.user }],
         tools: [
