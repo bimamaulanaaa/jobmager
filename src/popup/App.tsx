@@ -20,9 +20,24 @@ function openOptions(hash = '') {
   window.close();
 }
 
+/** Broad page access, requested only when an embedded form needs it. */
+const ALL_SITES = { origins: ['http://*/*', 'https://*/*'] };
+
+export async function hasBroadAccess(): Promise<boolean> {
+  try {
+    return await chrome.permissions.contains(ALL_SITES);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Injects the content script into every frame of the active tab and collects a
  * result from each. Per-frame injection is what makes iframe-hosted forms work.
+ *
+ * activeTab alone covers the page you are on; a form embedded from another
+ * origin (Greenhouse and Lever are usually iframes) needs host access to that
+ * origin, which the user grants on demand rather than at install time.
  */
 async function autofillActiveTab(): Promise<{ stats: AutofillStats; errors: FrameResult[] }> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -70,6 +85,7 @@ export function App() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [stats, setStats] = useState<AutofillStats | null>(null);
   const [error, setError] = useState('');
+  const [offerAccess, setOfferAccess] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -91,6 +107,14 @@ export function App() {
     try {
       const result = await autofillActiveTab();
       if (result.stats.total === 0) {
+        // A form that lives in a cross-origin iframe looks like an empty page
+        // until the user grants access to it.
+        if (!(await hasBroadAccess())) {
+          setOfferAccess(true);
+          setError('No fillable fields found here. If the form is embedded from another site, Jobmager needs access to it.');
+          setPhase('error');
+          return;
+        }
         const first = result.errors[0];
         if (first?.code === 'NO_KEY' || first?.code === 'NO_PROFILE') {
           setError(first.error ?? 'Setup incomplete.');
@@ -105,6 +129,18 @@ export function App() {
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setPhase('error');
+    }
+  }
+
+  /** Must run from the click handler: Chrome only allows this on a gesture. */
+  async function onGrantAccess() {
+    try {
+      const granted = await chrome.permissions.request(ALL_SITES);
+      if (!granted) return;
+      setOfferAccess(false);
+      await onAutofill();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -182,6 +218,19 @@ export function App() {
           </button>
 
           {phase === 'error' ? <Banner kind="error">{error}</Banner> : null}
+
+          {offerAccess ? (
+            <>
+              <button className="btn btn-block" onClick={() => void onGrantAccess()}>
+                Allow access to embedded forms
+              </button>
+              <p className="faint">
+                Grants Jobmager permission to read forms hosted by another site, such as
+                Greenhouse or Lever inside a careers page. It still only reads a page when
+                you press Autofill.
+              </p>
+            </>
+          ) : null}
 
           {phase === 'done' && stats ? (
             <>

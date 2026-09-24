@@ -103,6 +103,10 @@ Rejections are not silent: the popup counts them and a toast appears on the page
 - The API key is held by the background service worker; it never enters the page.
 - Pages are read **only** when you press Autofill — there is no always-on content script.
   Jobmager uses `activeTab`, so it has no standing access to the sites you browse.
+- Forms **embedded from another site** (Greenhouse or Lever inside a company careers page)
+  need one extra permission, because `activeTab` covers the page you are on and not a
+  third-party iframe inside it. Jobmager asks for it only when it runs into one, from a
+  button in the popup — it is not requested at install time.
 - Resume PDFs are parsed locally; only the extracted **text** is sent for structuring.
 
 ---
