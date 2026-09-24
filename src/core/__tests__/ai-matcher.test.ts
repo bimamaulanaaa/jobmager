@@ -33,7 +33,7 @@ function stubProvider(reply: string) {
   return vi.spyOn(PROVIDERS.anthropic, 'complete').mockResolvedValue(reply);
 }
 
-async function run(reply: string) {
+async function run() {
   return matchFields({
     providerId: 'anthropic',
     model: 'claude-opus-5',
@@ -53,19 +53,19 @@ describe('matchFields response handling', () => {
     stubProvider(JSON.stringify({
       fields: { f1: 'Bima', f2: 'bima@example.com', f3: null, f4: 'Indonesia' },
     }));
-    const { matches } = await run('');
+    const { matches } = await run();
     expect(matches.map((m) => m.value)).toEqual(['Bima', 'bima@example.com', null, 'id']);
   });
 
   it('accepts a bare object without the envelope', async () => {
     stubProvider(JSON.stringify({ f1: 'Bima', f2: null, f3: null, f4: null }));
-    const { matches } = await run('');
+    const { matches } = await run();
     expect(matches[0].value).toBe('Bima');
   });
 
   it('recovers JSON wrapped in prose or code fences', async () => {
     stubProvider('Here you go:\n```json\n{"fields":{"f1":"Bima","f2":null,"f3":null,"f4":null}}\n```');
-    const { matches } = await run('');
+    const { matches } = await run();
     expect(matches[0].value).toBe('Bima');
   });
 
@@ -78,21 +78,21 @@ describe('matchFields response handling', () => {
         f4: 'Singapore',
       },
     }));
-    const { matches, rejections } = await run('');
+    const { matches, rejections } = await run();
     expect(matches.map((m) => m.value)).toEqual(['Bima', null, null, null]);
     expect(rejections).toHaveLength(3);
   });
 
   it('fills every field id with null when the model omits them', async () => {
     stubProvider(JSON.stringify({ fields: {} }));
-    const { matches } = await run('');
+    const { matches } = await run();
     expect(matches).toHaveLength(4);
     expect(matches.every((m) => m.value === null)).toBe(true);
   });
 
   it('raises a readable error when the response is not JSON', async () => {
     stubProvider('I am unable to help with that request.');
-    await expect(run('')).rejects.toThrow(/not valid JSON|Could not read/i);
+    await expect(run()).rejects.toThrow(/not valid JSON|Could not read/i);
   });
 
   it('makes no provider call when the page has no fields', async () => {
@@ -111,7 +111,7 @@ describe('matchFields response handling', () => {
 describe('the request sent to the provider', () => {
   it('carries the profile, a schema keyed by field id, and forced JSON output', async () => {
     const spy = stubProvider(JSON.stringify({ fields: {} }));
-    await run('');
+    await run();
     const req = spy.mock.calls[0][0];
 
     expect(req.user).toContain('bima@example.com');
@@ -126,7 +126,7 @@ describe('the request sent to the provider', () => {
 
   it('never sends the page URL as a value the model may copy', async () => {
     const spy = stubProvider(JSON.stringify({ fields: {} }));
-    await run('');
+    await run();
     // The URL is context, so it appears — but under PAGE, not USER DATA.
     const req = spy.mock.calls[0][0];
     const userData = req.user.split('# PAGE')[0];
